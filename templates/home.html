@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MediScope AI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        input.form-control,
+        select.form-control,
+        textarea.form-control {
+            background-color: rgba(234, 234, 234, 0.48);
+            color: #333;
+        }
+        .container-main {
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(rgba(5, 68, 94, 0.8), rgba(5, 68, 94, 0.8)), url('https://images.unsplash.com/photo-1576091160550-2173fd22a420');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        .header-image {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            border-bottom: 2px solid #75e6da;
+        }
+        .content {
+            flex: 1;
+            padding: 2rem 0;
+        }
+        .text-section p {
+            text-align: justify;
+            margin-bottom: 0;
+            margin-right: 2rem;
+        }
+        .text-section h1, .text-section h3 {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        .login-section {
+            border: 2px solid #75e6da;
+            border-radius: 10px;
+            padding: 1.5rem;
+            background-color: rgba(255, 255, 255, 0.1);
+            margin-right: 0rem;
+        }
+        .login-section h1, .login-section h2 {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        @media (max-width: 768px) {
+            .header-image {
+                height: 150px;
+            }
+            .content {
+                padding: 1rem 0;
+            }
+            .text-section, .login-section {
+                margin-bottom: 1.5rem;
+            }
+        }
+        @media (max-width: 576px) {
+            .login-section {
+                padding: 1rem;
+            }
+            .form-control-sm {
+                font-size: 0.875rem;
+            }
+        }
+    </style>
+</head>
+<body style="background-color:#05445e; color:white;">
+    <div class="container-main">
+        <img src="{{ url_for('static', filename='image.jpg') }}" alt="Medical Technology" class="header-image">
+        <div class="content">
+            <div class="container">
+                <div class="row g-4 align-items-center">
+                    <!-- Text Section -->
+                    <div class="col-md-6 text-section">
+                        <h1 style="color: #75e6da">MediScope AI</h1>
+                        <h3 style="color: white;">About Us</h3>
+                        <p>We offer an AI-powered medical diagnosis platform that assists healthcare professionals in accurately and efficiently predicting diseases such as heart disease, lung cancer, breast cancer, and diabetes. Our system leverages a diverse suite of machine learning and deep learning models — including K-Nearest Neighbors, Support Vector Machines, Logistic Regression, Naive Bayes, Decision Trees, Random Forests, and advanced neural networks. Additionally, we integrate cutting-edge Quantum Machine Learning (QML) techniques to enhance diagnostic accuracy and support precision medicine.</p>
+                    </div>
+                    <!-- Login Section -->
+                    <div class="col-md-5 login-section">
+                        <h1 style="color: white;">Login</h1>
+                        {% if error %}
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                {{ error }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endif %}
+                        <form method="post" class="row g-4 justify-content-center">
+                            <div class="d-flex flex-column align-items-center">
+                                <div class="col-12" style="max-width: 350px;">
+                                    <input type="text" name="username" class="form-control form-control-sm" placeholder="Username" required>
+                                </div>
+                                <div class="col-12 mt-3" style="max-width: 350px;">
+                                    <input type="password" name="password" class="form-control form-control-sm" placeholder="Password" required>
+                                </div>
+                            </div>
+                            <div class="col-12 text-center">
+                                <button type="submit" name="action" value="Login" class="btn btn-primary me-2">Login</button>
+                                <button type="submit" name="action" value="Create Account" class="btn btn-secondary">Create Account</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

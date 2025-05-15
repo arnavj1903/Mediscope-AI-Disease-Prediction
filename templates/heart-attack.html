@@ -1,0 +1,290 @@
+{% extends "base.html" %}
+{% block title %}Heart Attack Prediction{% endblock %}
+{% block content %}
+    <style>
+        #recordsTable th, #recordsTable td {
+            padding: 12px;
+            vertical-align: middle;
+            border: 1px solid #dee2e6;
+        }
+        #recordsTable th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        #recordsTable td.numeric {
+            text-align: center;
+        }
+        #recordsTable td.text {
+            text-align: left;
+        }
+        #recordsTable {
+            width: 100%;
+            table-layout: auto;
+        }
+        .table-responsive {
+            margin-top: 20px;
+        }
+    </style>
+    <h1 class="text-center" style="color: #75e6da;">Heart Attack Prediction</h1><br>
+    <form id="searchForm" method="post" class="row g-3 mb-3">
+        <div class="col-6">
+            <div class="input-group">
+                <input type="text" name="name" id="patientName" class="form-control" placeholder="Patient Name" value="{{ name }}" required>
+                <button type="submit" class="btn btn-secondary">Search</button>
+            </div>
+        </div>
+    </form>
+    <form id="predictionForm" method="post" action="{{ url_for('predict', disease='heart-attack') }}" class="row g-3">
+        <div class="col-6">
+            <input type="text" name="name" class="form-control" placeholder="Patient Name" value="{{ name }}" required>
+        </div>
+        <div class="col-6">
+            <select name="model" class="form-select" required>
+                <option value="">Select Model</option>
+                <option value="KNN">KNN</option>
+                <option value="DT">Decision Tree</option>
+                <option value="RF">Random Forest</option>
+                <option value="LR">Logistic Regression</option>
+                <option value="SVM">SVM</option>
+                <option value="NB">Naive Bayes</option>
+                <option value="DL">Deep Learning</option>
+                <option value="QNN">QNN</option>
+            </select>
+        </div>
+        <div class="col-6">
+            <input type="number" name="age" class="form-control" placeholder="Age" required>
+        </div>
+        <div class="col-6">
+            <select name="sex" class="form-select" required>
+                <option value="">Select Sex</option>
+                <option value="female">Female</option>
+                <option value="male">Male</option>
+            </select>
+        </div>
+        <div class="col-6">
+            <select name="cp" class="form-select" required>
+                <option value="">Select Chest Pain Type</option>
+                <option value="typical_angina">Typical Angina</option>
+                <option value="atypical_angina">Atypical Angina</option>
+                <option value="non_anginal_pain">Non-Anginal Pain</option>
+                <option value="asymptomatic">Asymptomatic</option>
+            </select>
+        </div>
+        <div class="col-6">
+            <input type="number" name="trestbps" class="form-control" placeholder="Resting Blood Pressure" required>
+        </div>
+        <div class="col-6">
+            <input type="number" name="chol" class="form-control" placeholder="Cholesterol" required>
+        </div>
+        <div class="col-6">
+            <select name="fbs" class="form-select" required>
+                <option value="">Select Fasting Blood Sugar</option>
+                <option value="false">False (≤ 120 mg/dl)</option>
+                <option value="true">True (> 120 mg/dl)</option>
+            </select>
+        </div>
+        <div class="col-6">
+            <select name="restecg" class="form-select" required>
+                <option value="">Select Resting ECG</option>
+                <option value="normal">Normal</option>
+                <option value="st_t_abnormality">ST-T Wave Abnormality</option>
+                <option value="lv_hypertrophy">Probable/Definite LV Hypertrophy</option>
+            </select>
+        </div>
+        <div class="col-6">
+            <input type="number" name="thalach" class="form-control" placeholder="Max Heart Rate" required>
+        </div>
+        <div class="col-6">
+            <select name="exang" class="form-select" required>
+                <option value="">Select Exercise Induced Angina</option>
+                <option value="no">No</option>
+                <option value="yes">Yes</option>
+            </select>
+        </div>
+        <div class="col-6">
+            <input type="number" name="oldpeak" class="form-control" placeholder="ST Depression" step="0.1" required>
+        </div>
+        <div class="col-6">
+            <select name="slope" class="form-select" required>
+                <option value="">Select Slope</option>
+                <option value="upsloping">Upsloping</option>
+                <option value="flat">Flat</option>
+                <option value="downsloping">Downsloping</option>
+            </select>
+        </div>
+        <div class="col-6">
+            <select name="ca" class="form-select" required>
+                <option value="">Select Major Vessels</option>
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+            </select>
+        </div>
+        <div class="col-6">
+            <select name="thal" class="form-select" required>
+                <option value="">Select Thalassemia</option>
+                <option value="normal">Normal</option>
+                <option value="fixed_defect">Fixed Defect</option>
+                <option value="reversible_defect">Reversible Defect</option>
+                <option value="other">Other</option>
+            </select>
+        </div>
+        <div class="col-12 text-center">
+            <button type="submit" class="btn btn-primary">Predict</button>
+        </div>
+    </form>
+    {% if error %}
+        <div class="alert alert-danger mt-4">{{ error }}</div>
+    {% elif prediction is not none %}
+        <div class="alert alert-info mt-4">
+            <h4>Prediction Result for {{ name }}</h4>
+            <p>Heart Attack Risk: {{ 'Positive' if prediction >= 0.5 else 'Negative' }}</p>
+            <p>Risk Level: {{ risk_label }}</p>
+        </div>
+    {% endif %}
+    {% if recommendations %}
+        <h2>Recommendations</h2>
+        <ul>
+            {% for rec in recommendations %}
+                <li>{{ rec }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    <div id="recordsSection" class="mt-4">
+        {% if no_records %}
+            <div class="alert alert-warning">No records found for {{ name }}</div>
+        {% elif records %}
+            <h4>Existing Records for {{ name }}</h4>
+            <div class="table-responsive">
+                <table class="table table-striped" id="recordsTable">
+                    <thead>
+                        <tr>
+                            <th class="numeric">ID</th>
+                            <th class="numeric">Age</th>
+                            <th class="text">Sex</th>
+                            <th class="text">Chest Pain</th>
+                            <th class="numeric">Resting BP</th>
+                            <th class="numeric">Cholesterol</th>
+                            <th class="text">FBS</th>
+                            <th class="text">Rest ECG</th>
+                            <th class="numeric">Max HR</th>
+                            <th class="text">Exang</th>
+                            <th class="numeric">Oldpeak</th>
+                            <th class="text">Slope</th>
+                            <th class="numeric">Ca</th>
+                            <th class="text">Thal</th>
+                            <th class="text">Result</th>
+                            <th class="text">Risk Level</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in records %}
+                            <tr>
+                                <td class="numeric">{{ record.id }}</td>
+                                <td class="numeric">{{ record.age | default('N/A') }}</td>
+                                <td class="text">{{ 'Female' if record.features['sex'] == 0 else 'Male' if record.features['sex'] == 1 else 'N/A' }}</td>
+                                <td class="text">{{ {0: 'Typical Angina', 1: 'Atypical Angina', 2: 'Non-Anginal Pain', 3: 'Asymptomatic'}[record.features['cp']] | default('N/A') }}</td>
+                                <td class="numeric">{{ record.features['trestbps'] | default('N/A') }}</td>
+                                <td class="numeric">{{ record.features['chol'] | default('N/A') }}</td>
+                                <td class="text">{{ 'False' if record.features['fbs'] == 0 else 'True' if record.features['fbs'] == 1 else 'N/A' }}</td>
+                                <td class="text">{{ {0: 'Normal', 1: 'ST-T Wave Abnormality', 2: 'LV Hypertrophy'}[record.features['restecg']] | default('N/A') }}</td>
+                                <td class="numeric">{{ record.features['thalach'] | default('N/A') }}</td>
+                                <td class="text">{{ 'No' if record.features['exang'] == 0 else 'Yes' if record.features['exang'] == 1 else 'N/A' }}</td>
+                                <td class="numeric">{{ record.features['oldpeak'] | default('N/A') }}</td>
+                                <td class="text">{{ {0: 'Upsloping', 1: 'Flat', 2: 'Downsloping'}[record.features['slope']] | default('N/A') }}</td>
+                                <td class="numeric">{{ record.features['ca'] | default('N/A') }}</td>
+                                <td class="text">{{ {0: 'Normal', 1: 'Fixed Defect', 2: 'Reversible Defect', 3: 'Other'}[record.features['thal']] | default('N/A') }}</td>
+                                <td class="text">{{ 'Positive' if record.result >= 0.5 else 'Negative' }}</td>
+                                <td class="text">{{ record.risk_label | default('N/A') }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+    <script>
+        document.getElementById('searchForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const name = document.getElementById('patientName').value;
+            const recordsSection = document.getElementById('recordsSection');
+            try {
+                const response = await fetch(`/search/heart-attack`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({ 'name': name })
+                });
+                const data = await response.json();
+                
+                // Clear existing content
+                recordsSection.innerHTML = '';
+
+                if (data.no_records || !data.records || data.records.length === 0) {
+                    recordsSection.innerHTML = `<div class="alert alert-warning mt-4">No records found for ${name}</div>`;
+                    return;
+                }
+
+                // Define mapping objects for readability
+                const cpMap = { 0: 'Typical Angina', 1: 'Atypical Angina', 2: 'Non-Anginal Pain', 3: 'Asymptomatic' };
+                const restecgMap = { 0: 'Normal', 1: 'ST-T Wave Abnormality', 2: 'LV Hypertrophy' };
+                const slopeMap = { 0: 'Upsloping', 1: 'Flat', 2: 'Downsloping' };
+                const thalMap = { 0: 'Normal', 1: 'Fixed Defect', 2: 'Reversible Defect', 3: 'Other' };
+
+                // Render records table
+                recordsSection.innerHTML = `
+                    <h4>Existing Records for ${name}</h4>
+                    <div class="table-responsive">
+                        <table class="table table-striped" id="recordsTable">
+                            <thead>
+                                <tr>
+                                    <th class="numeric">ID</th>
+                                    <th class="numeric">Age</th>
+                                    <th class="text">Sex</th>
+                                    <th class="text">Chest Pain</th>
+                                    <th class="numeric">Resting BP</th>
+                                    <th class="numeric">Cholesterol</th>
+                                    <th class="text">FBS</th>
+                                    <th class="text">Rest ECG</th>
+                                    <th class="numeric">Max HR</th>
+                                    <th class="text">Exang</th>
+                                    <th class="numeric">Oldpeak</th>
+                                    <th class="text">Slope</th>
+                                    <th class="numeric">Ca</th>
+                                    <th class="text">Thal</th>
+                                    <th class="text">Result</th>
+                                    <th class="text">Risk Level</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.records.map(record => `
+                                    <tr>
+                                        <td class="numeric">${record.id}</td>
+                                        <td class="numeric">${record.age || 'N/A'}</td>
+                                        <td class="text">${record.features['sex'] === 0 ? 'Female' : record.features['sex'] === 1 ? 'Male' : 'N/A'}</td>
+                                        <td class="text">${cpMap[record.features['cp']] || 'N/A'}</td>
+                                        <td class="numeric">${record.features['trestbps'] || 'N/A'}</td>
+                                        <td class="numeric">${record.features['chol'] || 'N/A'}</td>
+                                        <td class="text">${record.features['fbs'] === 0 ? 'False' : record.features['fbs'] === 1 ? 'True' : 'N/A'}</td>
+                                        <td class="text">${restecgMap[record.features['restecg']] || 'N/A'}</td>
+                                        <td class="numeric">${record.features['thalach'] || 'N/A'}</td>
+                                        <td class="text">${record.features['exang'] === 0 ? 'No' : record.features['exang'] === 1 ? 'Yes' : 'N/A'}</td>
+                                        <td class="numeric">${record.features['oldpeak'] || 'N/A'}</td>
+                                        <td class="text">${slopeMap[record.features['slope']] || 'N/A'}</td>
+                                        <td class="numeric">${record.features['ca'] || 'N/A'}</td>
+                                        <td class="text">${thalMap[record.features['thal']] || 'N/A'}</td>
+                                        <td class="text">${record.result >= 0.5 ? 'Positive' : 'Negative'}</td>
+                                        <td class="text">${record.risk_label || 'N/A'}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error fetching records:', error);
+                recordsSection.innerHTML = `<div class="alert alert-danger mt-4">Error fetching records. Please try again.</div>`;
+            }
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Welcome{% endblock %}
+{% block content %}
+    <div class="text-center">
+        <h1 style="color: #75e6da;">Welcome, Doctor</h1>
+        <h3>About Us</h3>
+        <p>Our platform uses advanced machine learning models to predict the likelihood of various diseases, assisting you in providing better patient care.</p>
+        <h4 class="mt-5">Select a Disease</h4>
+        <div class="d-grid gap-3 col-md-6 mx-auto">
+            <a href="{{ url_for('disease_page', disease='heart-attack') }}" class="btn btn-primary btn-lg fw-bold">Heart Attack</a>
+            <a href="{{ url_for('disease_page', disease='breast-cancer') }}" class="btn btn-primary btn-lg fw-bold">Breast Cancer</a>
+            <a href="{{ url_for('disease_page', disease='diabetes') }}" class="btn btn-primary btn-lg fw-bold">Diabetes</a>
+            <a href="{{ url_for('disease_page', disease='lung-cancer') }}" class="btn btn-primary btn-lg fw-bold">Lung Cancer</a>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+{% block title %}Lung Cancer Prediction{% endblock %}
+{% block content %}
+    <style>
+        #recordsTable th, #recordsTable td {
+            padding: 12px;
+            vertical-align: middle;
+            border: 1px solid #dee2e6;
+        }
+        #recordsTable th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        #recordsTable td.numeric {
+            text-align: center;
+        }
+        #recordsTable td.text {
+            text-align: left;
+        }
+        #recordsTable {
+            width: 100%;
+            table-layout: auto;
+        }
+        .table-responsive {
+            margin-top: 20px;
+        }
+    </style>
+    <h1 class="text-center" style="color: #75e6da;">Lung Cancer Prediction</h1><br>
+    <form id="searchForm" method="post" class="row g-3 mb-3">
+        <div class="col-6">
+            <div class="input-group">
+                <input type="text" name="name" id="patientName" class="form-control" placeholder="Patient Name" value="{{ name }}" required>
+                <button type="submit" class="btn btn-secondary">Search</button>
+            </div>
+        </div>
+    </form>
+    <form id="predictionForm" method="post" action="{{ url_for('predict', disease='lung-cancer') }}" class="row g-3">
+        <div class="col-6">
+            <input type="text" name="name" class="form-control" placeholder="Patient Name" value="{{ name }}" required>
+        </div>
+        <div class="col-6">
+            <select name="model" class="form-select" required>
+                <option value="">Select Model</option>
+                <option value="KNN">KNN</option>
+                <option value="DT">Decision Tree</option>
+                <option value="RF">Random Forest</option>
+                <option value="LR">Logistic Regression</option>
+                <option value="SVM">SVM</option>
+                <option value="NB">Naive Bayes</option>
+                <option value="DL">Deep Learning</option>
+                <option value="QNN">QNN</option>
+            </select>
+        </div>
+        <div class="col-6">
+            <select name="GENDER" class="form-select" required>
+                <option value="">Select Gender</option>
+                <option value="F">Female</option>
+                <option value="M">Male</option>
+            </select>
+        </div>
+        <div class="col-6">
+            <input type="number" name="AGE" class="form-control" placeholder="Age" required>
+        </div>
+        <div class="col-6">
+            <select name="SMOKING" class="form-select" required>
+                <option value="">Select Smoking</option>
+                <option value="1">No</option>
+                <option value="2">Yes</option>
+            </select>
+        </div>
+        <div class="col-6">
+            <select name="YELLOW_FINGERS" class="form-select" required>
+                <option value="">Select Yellow Fingers</option>
+                <option value="1">No</option>
+                <option value="2">Yes</option>
+            </select>
+        </div>
+        <div class="col-6">
+            <select name="ANXIETY" class="form-select" required>
+                <option value="">Select Anxiety</option>
+                <option value="1">No</option>
+                <option value="2">Yes</option>
+            </select>
+        </div>
+        <div class="col-6">
+            <select name="PEER_PRESSURE" class="form-select" required>
+                <option value="">Select Peer Pressure</option>
+                <option value="1">No</option>
+                <option value="2">Yes</option>
+            </select>
+        </div>
+        <div class="col-6">
+            <select name="CHRONIC_DISEASE" class="form-select" required>
+                <option value="">Select Chronic Disease</option>
+                <option value="1">No</option>
+                <option value="2">Yes</option>
+            </select>
+        </div>
+        <div class="col-6">
+            <select name="FATIGUE" class="form-select" required>
+                <option value="">Select Fatigue</option>
+                <option value="1">No</option>
+                <option value="2">Yes</option>
+            </select>
+        </div>
+        <div class="col-6">
+            <select name="ALLERGY" class="form-select" required>
+                <option value="">Select Allergy</option>
+                <option value="1">No</option>
+                <option value="2">Yes</option>
+            </select>
+        </div>
+        <div class="col-6">
+            <select name="WHEEZING" class="form-select" required>
+                <option value="">Select Wheezing</option>
+                <option value="1">No</option>
+                <option value="2">Yes</option>
+            </select>
+        </div>
+        <div class="col-6">
+            <select name="ALCOHOL_CONSUMING" class="form-select" required>
+                <option value="">Select Alcohol Consuming</option>
+                <option value="1">No</option>
+                <option value="2">Yes</option>
+            </select>
+        </div>
+        <div class="col-6">
+            <select name="COUGHING" class="form-select" required>
+                <option value="">Select Coughing</option>
+                <option value="1">No</option>
+                <option value="2">Yes</option>
+            </select>
+        </div>
+        <div class="col-6">
+            <select name="SHORTNESS_OF_BREATH" class="form-select" required>
+                <option value="">Select Shortness of Breath</option>
+                <option value="1">No</option>
+                <option value="2">Yes</option>
+            </select>
+        </div>
+        <div class="col-6">
+            <select name="SWALLOWING_DIFFICULTY" class="form-select" required>
+                <option value="">Select Swallowing Difficulty</option>
+                <option value="1">No</option>
+                <option value="2">Yes</option>
+            </select>
+        </div>
+        <div class="col-6">
+            <select name="CHEST_PAIN" class="form-select" required>
+                <option value="">Select Chest Pain</option>
+                <option value="1">No</option>
+                <option value="2">Yes</option>
+            </select>
+        </div>
+        <div class="col-12 text-center">
+            <button type="submit" class="btn btn-primary">Predict</button>
+        </div>
+    </form>
+    {% if error %}
+        <div class="alert alert-danger mt-4">{{ error }}</div>
+    {% elif prediction is not none %}
+        <div class="alert alert-info mt-4">
+            <h4>Prediction Result for {{ name }}</h4>
+            <p>Lung Cancer Diagnosis: {{ 'Positive' if prediction == 1 else 'Negative' }}</p>
+        </div>
+    {% endif %}
+    {% if recommendations %}
+        <h2>Recommendations</h2>
+        <ul>
+            {% for rec in recommendations %}
+                <li>{{ rec }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    <div id="recordsSection" class="mt-4">
+        {% if no_records %}
+            <div class="alert alert-warning">No records found for {{ name }}</div>
+        {% elif records %}
+            <h4>Existing Records for {{ name }}</h4>
+            <div class="table-responsive">
+                <table class="table table-striped" id="recordsTable">
+                    <thead>
+                        <tr>
+                            <th class="numeric">ID</th>
+                            <th class="numeric">Age</th>
+                            <th class="text">Gender</th>
+                            <th class="text">Smoking</th>
+                            <th class="text">Yellow Fingers</th>
+                            <th class="text">Anxiety</th>
+                            <th class="text">Peer Pressure</th>
+                            <th class="text">Chronic Disease</th>
+                            <th class="text">Fatigue</th>
+                            <th class="text">Allergy</th>
+                            <th class="text">Wheezing</th>
+                            <th class="text">Alcohol Consuming</th>
+                            <th class="text">Coughing</th>
+                            <th class="text">Shortness of Breath</th>
+                            <th class="text">Swallowing Difficulty</th>
+                            <th class="text">Chest Pain</th>
+                            <th class="text">Result</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in records %}
+                            <tr>
+                                <td class="numeric">{{ record.id }}</td>
+                                <td class="numeric">{{ record.age | default('N/A') }}</td>
+                                <td class="text">{{ 'Female' if record.features['GENDER'] == 0 else 'Male' if record.features['GENDER'] == 1 else 'N/A' }}</td>
+                                <td class="text">{{ 'No' if record.features['SMOKING'] == 0 else 'Yes' if record.features['SMOKING'] == 1 else 'N/A' }}</td>
+                                <td class="text">{{ 'No' if record.features['YELLOW_FINGERS'] == 0 else 'Yes' if record.features['YELLOW_FINGERS'] == 1 else 'N/A' }}</td>
+                                <td class="text">{{ 'No' if record.features['ANXIETY'] == 0 else 'Yes' if record.features['ANXIETY'] == 1 else 'N/A' }}</td>
+                                <td class="text">{{ 'No' if record.features['PEER_PRESSURE'] == 0 else 'Yes' if record.features['PEER_PRESSURE'] == 1 else 'N/A' }}</td>
+                                <td class="text">{{ 'No' if record.features['CHRONIC_DISEASE'] == 0 else 'Yes' if record.features['CHRONIC_DISEASE'] == 1 else 'N/A' }}</td>
+                                <td class="text">{{ 'No' if record.features['FATIGUE'] == 0 else 'Yes' if record.features['FATIGUE'] == 1 else 'N/A' }}</td>
+                                <td class="text">{{ 'No' if record.features['ALLERGY'] == 0 else 'Yes' if record.features['ALLERGY'] == 1 else 'N/A' }}</td>
+                                <td class="text">{{ 'No' if record.features['WHEEZING'] == 0 else 'Yes' if record.features['WHEEZING'] == 1 else 'N/A' }}</td>
+                                <td class="text">{{ 'No' if record.features['ALCOHOL_CONSUMING'] == 0 else 'Yes' if record.features['ALCOHOL_CONSUMING'] == 1 else 'N/A' }}</td>
+                                <td class="text">{{ 'No' if record.features['COUGHING'] == 0 else 'Yes' if record.features['COUGHING'] == 1 else 'N/A' }}</td>
+                                <td class="text">{{ 'No' if record.features['SHORTNESS_OF_BREATH'] == 0 else 'Yes' if record.features['SHORTNESS_OF_BREATH'] == 1 else 'N/A' }}</td>
+                                <td class="text">{{ 'No' if record.features['SWALLOWING_DIFFICULTY'] == 0 else 'Yes' if record.features['SWALLOWING_DIFFICULTY'] == 1 else 'N/A' }}</td>
+                                <td class="text">{{ 'No' if record.features['CHEST_PAIN'] == 0 else 'Yes' if record.features['CHEST_PAIN'] == 1 else 'N/A' }}</td>
+                                <td class="text">{{ 'Positive' if record.result == 1 else 'Negative' }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+    <script>
+        document.getElementById('searchForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const name = document.getElementById('patientName').value;
+            const recordsSection = document.getElementById('recordsSection');
+            try {
+                const response = await fetch(`/search/lung-cancer`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({ 'name': name })
+                });
+                const data = await response.json();
+                
+                // Clear existing content
+                recordsSection.innerHTML = '';
+
+                if (data.no_records || !data.records || data.records.length === 0) {
+                    recordsSection.innerHTML = `<div class="alert alert-warning mt-4">No records found for ${name}</div>`;
+                    return;
+                }
+
+                // Render records table
+                recordsSection.innerHTML = `
+                    <h4>Existing Records for ${name}</h4>
+                    <div class="table-responsive">
+                        <table class="table table-striped" id="recordsTable">
+                            <thead>
+                                <tr>
+                                    <th class="numeric">ID</th>
+                                    <th class="numeric">Age</th>
+                                    <th class="text">Gender</th>
+                                    <th class="text">Smoking</th>
+                                    <th class="text">Yellow Fingers</th>
+                                    <th class="text">Anxiety</th>
+                                    <th class="text">Peer Pressure</th>
+                                    <th class="text">Chronic Disease</th>
+                                    <th class="text">Fatigue</th>
+                                    <th class="text">Allergy</th>
+                                    <th class="text">Wheezing</th>
+                                    <th class="text">Alcohol Consuming</th>
+                                    <th class="text">Coughing</th>
+                                    <th class="text">Shortness of Breath</th>
+                                    <th class="text">Swallowing Difficulty</th>
+                                    <th class="text">Chest Pain</th>
+                                    <th class="text">Result</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.records.map(record => `
+                                    <tr>
+                                        <td class="numeric">${record.id}</td>
+                                        <td class="numeric">${record.age || 'N/A'}</td>
+                                        <td class="text">${record.features['GENDER'] === 0 ? 'Female' : record.features['GENDER'] === 1 ? 'Male' : 'N/A'}</td>
+                                        <td class="text">${record.features['SMOKING'] === 0 ? 'No' : record.features['SMOKING'] === 1 ? 'Yes' : 'N/A'}</td>
+                                        <td class="text">${record.features['YELLOW_FINGERS'] === 0 ? 'No' : record.features['YELLOW_FINGERS'] === 1 ? 'Yes' : 'N/A'}</td>
+                                        <td class="text">${record.features['ANXIETY'] === 0 ? 'No' : record.features['ANXIETY'] === 1 ? 'Yes' : 'N/A'}</td>
+                                        <td class="text">${record.features['PEER_PRESSURE'] === 0 ? 'No' : record.features['PEER_PRESSURE'] === 1 ? 'Yes' : 'N/A'}</td>
+                                        <td class="text">${record.features['CHRONIC_DISEASE'] === 0 ? 'No' : record.features['CHRONIC_DISEASE'] === 1 ? 'Yes' : 'N/A'}</td>
+                                        <td class="text">${record.features['FATIGUE'] === 0 ? 'No' : record.features['FATIGUE'] === 1 ? 'Yes' : 'N/A'}</td>
+                                        <td class="text">${record.features['ALLERGY'] === 0 ? 'No' : record.features['ALLERGY'] === 1 ? 'Yes' : 'N/A'}</td>
+                                        <td class="text">${record.features['WHEEZING'] === 0 ? 'No' : record.features['WHEEZING'] === 1 ? 'Yes' : 'N/A'}</td>
+                                        <td class="text">${record.features['ALCOHOL_CONSUMING'] === 0 ? 'No' : record.features['ALCOHOL_CONSUMING'] === 1 ? 'Yes' : 'N/A'}</td>
+                                        <td class="text">${record.features['COUGHING'] === 0 ? 'No' : record.features['COUGHING'] === 1 ? 'Yes' : 'N/A'}</td>
+                                        <td class="text">${record.features['SHORTNESS_OF_BREATH'] === 0 ? 'No' : record.features['SHORTNESS_OF_BREATH'] === 1 ? 'Yes' : 'N/A'}</td>
+                                        <td class="text">${record.features['SWALLOWING_DIFFICULTY'] === 0 ? 'No' : record.features['SWALLOWING_DIFFICULTY'] === 1 ? 'Yes' : 'N/A'}</td>
+                                        <td class="text">${record.features['CHEST_PAIN'] === 0 ? 'No' : record.features['CHEST_PAIN'] === 1 ? 'Yes' : 'N/A'}</td>
+                                        <td class="text">${record.result === 1 ? 'Positive' : 'Negative'}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error fetching records:', error);
+                recordsSection.innerHTML = `<div class="alert alert-danger mt-4">Error fetching records. Please try again.</div>`;
+            }
+        });
+    </script>
+{% endblock %}

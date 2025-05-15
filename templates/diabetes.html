@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+{% block title %}Diabetes Prediction{% endblock %}
+{% block content %}
+    <style>
+        #recordsTable th, #recordsTable td {
+            padding: 12px;
+            vertical-align: middle;
+            border: 1px solid #dee2e6;
+        }
+        #recordsTable th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        #recordsTable td.numeric {
+            text-align: center;
+        }
+        #recordsTable td.text {
+            text-align: left;
+        }
+        #recordsTable {
+            width: 100%;
+            table-layout: auto;
+        }
+        .table-responsive {
+            margin-top: 20px;
+        }
+    </style>
+    <h1 class="text-center" style="color: #75e6da;">Diabetes Prediction</h1><br>
+    <form id="searchForm" method="post" class="row g-3 mb-3">
+        <div class="col-6">
+            <div class="input-group">
+                <input type="text" name="name" id="patientName" class="form-control" placeholder="Patient Name" value="{{ name }}" required>
+                <button type="submit" class="btn btn-secondary">Search</button>
+            </div>
+        </div>
+    </form>
+    <form id="predictionForm" method="post" action="{{ url_for('predict', disease='diabetes') }}" class="row g-3">
+        <div class="col-6">
+            <input type="text" name="name" class="form-control" placeholder="Patient Name" value="{{ name }}" required>
+        </div>
+        <div class="col-6">
+            <select name="model" class="form-select" required>
+                <option value="">Select Model</option>
+                <option value="KNN">KNN</option>
+                <option value="DT">Decision Tree</option>
+                <option value="RF">Random Forest</option>
+                <option value="LR">Logistic Regression</option>
+                <option value="SVM">SVM</option>
+                <option value="NB">Naive Bayes</option>
+                <option value="DL">Deep Learning</option>
+                <option value="QNN">QNN</option>
+            </select>
+        </div>
+        <div class="col-6">
+            <input type="number" name="Pregnancies" class="form-control" placeholder="Pregnancies" required>
+        </div>
+        <div class="col-6">
+            <input type="number" name="Glucose" class="form-control" placeholder="Glucose" required>
+        </div>
+        <div class="col-6">
+            <input type="number" name="BloodPressure" class="form-control" placeholder="Blood Pressure" required>
+        </div>
+        <div class="col-6">
+            <input type="number" name="SkinThickness" class="form-control" placeholder="Skin Thickness" required>
+        </div>
+        <div class="col-6">
+            <input type="number" name="Insulin" class="form-control" placeholder="Insulin" required>
+        </div>
+        <div class="col-6">
+            <input type="number" name="BMI" class="form-control" placeholder="BMI" step="0.1" required>
+        </div>
+        <div class="col-6">
+            <input type="number" name="DiabetesPedigreeFunction" class="form-control" placeholder="Diabetes Pedigree Function" step="0.001" required>
+        </div>
+        <div class="col-6">
+            <input type="number" name="Age" class="form-control" placeholder="Age" required>
+        </div>
+        <div class="col-12 text-center">
+            <button type="submit" class="btn btn-primary">Predict</button>
+        </div>
+    </form>
+    {% if error %}
+        <div class="alert alert-danger mt-4">{{ error }}</div>
+    {% elif prediction is not none %}
+        <div class="alert alert-info mt-4">
+            <h4>Prediction Result for {{ name }}</h4>
+            <p>Diabetes Diagnosis: {{ 'Positive' if prediction == 1 else 'Negative' }}</p>
+        </div>
+    {% endif %}
+    {% if recommendations %}
+        <h2>Recommendations</h2>
+        <ul>
+            {% for rec in recommendations %}
+                <li>{{ rec }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    <div id="recordsSection" class="mt-4">
+        {% if no_records %}
+            <div class="alert alert-warning">No records found for {{ name }}</div>
+        {% elif records %}
+            <h4>Existing Records for {{ name }}</h4>
+            <div class="table-responsive">
+                <table class="table table-striped" id="recordsTable">
+                    <thead>
+                        <tr>
+                            <th class="numeric">ID</th>
+                            <th class="numeric">Age</th>
+                            <th class="numeric">Pregnancies</th>
+                            <th class="numeric">Glucose</th>
+                            <th class="numeric">Blood Pressure</th>
+                            <th class="numeric">Skin Thickness</th>
+                            <th class="numeric">Insulin</th>
+                            <th class="numeric">BMI</th>
+                            <th class="numeric">Diabetes Pedigree</th>
+                            <th class="text">Result</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in records %}
+                            <tr>
+                                <td class="numeric">{{ record.id }}</td>
+                                <td class="numeric">{{ record.age | default('N/A') }}</td>
+                                <td class="numeric">{{ record.features['Pregnancies'] | default('N/A') }}</td>
+                                <td class="numeric">{{ record.features['Glucose'] | default('N/A') }}</td>
+                                <td class="numeric">{{ record.features['BloodPressure'] | default('N/A') }}</td>
+                                <td class="numeric">{{ record.features['SkinThickness'] | default('N/A') }}</td>
+                                <td class="numeric">{{ record.features['Insulin'] | default('N/A') }}</td>
+                                <td class="numeric">{{ record.features['BMI'] | default('N/A') }}</td>
+                                <td class="numeric">{{ record.features['DiabetesPedigreeFunction'] | default('N/A') }}</td>
+                                <td class="text">{{ 'Positive' if record.result == 1 else 'Negative' }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+    <script>
+        document.getElementById('searchForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const name = document.getElementById('patientName').value;
+            const recordsSection = document.getElementById('recordsSection');
+            try {
+                const response = await fetch(`/search/diabetes`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({ 'name': name })
+                });
+                const data = await response.json();
+                
+                // Clear existing content
+                recordsSection.innerHTML = '';
+
+                if (data.no_records || !data.records || data.records.length === 0) {
+                    recordsSection.innerHTML = `<div class="alert alert-warning mt-4">No records found for ${name}</div>`;
+                    return;
+                }
+
+                // Render records table
+                recordsSection.innerHTML = `
+                    <h4>Existing Records for ${name}</h4>
+                    <div class="table-responsive">
+                        <table class="table table-striped" id="recordsTable">
+                            <thead>
+                                <tr>
+                                    <th class="numeric">ID</th>
+                                    <th class="numeric">Age</th>
+                                    <th class="numeric">Pregnancies</th>
+                                    <th class="numeric">Glucose</th>
+                                    <th class="numeric">Blood Pressure</th>
+                                    <th class="numeric">Skin Thickness</th>
+                                    <th class="numeric">Insulin</th>
+                                    <th class="numeric">BMI</th>
+                                    <th class="numeric">Diabetes Pedigree</th>
+                                    <th class="text">Result</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.records.map(record => `
+                                    <tr>
+                                        <td class="numeric">${record.id}</td>
+                                        <td class="numeric">${record.age || 'N/A'}</td>
+                                        <td class="numeric">${record.features['Pregnancies'] || 'N/A'}</td>
+                                        <td class="numeric">${record.features['Glucose'] || 'N/A'}</td>
+                                        <td class="numeric">${record.features['BloodPressure'] || 'N/A'}</td>
+                                        <td class="numeric">${record.features['SkinThickness'] || 'N/A'}</td>
+                                        <td class="numeric">${record.features['Insulin'] || 'N/A'}</td>
+                                        <td class="numeric">${record.features['BMI'] || 'N/A'}</td>
+                                        <td class="numeric">${record.features['DiabetesPedigreeFunction'] || 'N/A'}</td>
+                                        <td class="text">${record.result === 1 ? 'Positive' : 'Negative'}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error fetching records:', error);
+                recordsSection.innerHTML = `<div class="alert alert-danger mt-4">Error fetching records. Please try again.</div>`;
+            }
+        });
+    </script>
+{% endblock %}

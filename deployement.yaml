@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: medical-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: medical-app
+  template:
+    metadata:
+      labels:
+        app: medical-app
+    spec:
+      containers:
+      - name: medical-app
+        image: medical-app:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5000

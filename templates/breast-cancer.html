@@ -1,0 +1,357 @@
+{% extends "base.html" %}
+{% block title %}Breast Cancer Prediction{% endblock %}
+{% block content %}
+    <style>
+        #recordsTable th, #recordsTable td {
+            padding: 12px;
+            vertical-align: middle;
+            border: 1px solid #dee2e6;
+        }
+        #recordsTable th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        #recordsTable td.numeric {
+            text-align: center;
+        }
+        #recordsTable td.text {
+            text-align: left;
+        }
+        #recordsTable {
+            width: 100%;
+            table-layout: auto;
+        }
+        .table-responsive {
+            margin-top: 20px;
+        }
+    </style>
+    <h1 class="text-center" style="color: #75e6da;">Breast Cancer Prediction</h1><br>
+    <form id="searchForm" method="post" class="row g-3 mb-3">
+        <div class="col-6">
+            <div class="input-group">
+                <input type="text" name="name" id="patientName" class="form-control" placeholder="Patient Name" value="{{ name }}" required>
+                <button type="submit" class="btn btn-secondary">Search</button>
+            </div>
+        </div>
+    </form>
+    <form id="predictionForm" method="post" action="{{ url_for('predict', disease='breast-cancer') }}" class="row g-3">
+        <div class="col-6">
+            <input type="text" name="name" class="form-control" placeholder="Patient Name" value="{{ name }}" required>
+        </div>
+        <div class="col-6">
+            <select name="model" class="form-select" required>
+                <option value="">Select Model</option>
+                <option value="KNN">KNN</option>
+                <option value="DT">Decision Tree</option>
+                <option value="RF">Random Forest</option>
+                <option value="LR">Logistic Regression</option>
+                <option value="SVM">SVM</option>
+                <option value="NB">Naive Bayes</option>
+                <option value="DL">Deep Learning</option>
+            </select>
+        </div>
+        <div class="col-6">
+            <input type="number" name="radius_mean" class="form-control" placeholder="Radius Mean" step="0.01" required>
+        </div>
+        <div class="col-6">
+            <input type="number" name="texture_mean" class="form-control" placeholder="Texture Mean" step="0.01" required>
+        </div>
+        <div class="col-6">
+            <input type="number" name="perimeter_mean" class="form-control" placeholder="Perimeter Mean" step="0.01" required>
+        </div>
+        <div class="col-6">
+            <input type="number" name="area_mean" class="form-control" placeholder="Area Mean" step="0.01" required>
+        </div>
+        <div class="col-6">
+            <input type="number" name="smoothness_mean" class="form-control" placeholder="Smoothness Mean" step="0.0001" required>
+        </div>
+        <div class="col-6">
+            <input type="number" name="compactness_mean" class="form-control" placeholder="Compactness Mean" step="0.0001" required>
+        </div>
+        <div class="col-6">
+            <input type="number" name="concavity_mean" class="form-control" placeholder="Concavity Mean" step="0.0001" required>
+        </div>
+        <div class="col-6">
+            <input type="number" name="concave_points_mean" class="form-control" placeholder="Concave Points Mean" step="0.0001" required>
+        </div>
+        <div class="col-6">
+            <input type="number" name="symmetry_mean" class="form-control" placeholder="Symmetry Mean" step="0.0001" required>
+        </div>
+        <div class="col-6">
+            <input type="number" name="fractal_dimension_mean" class="form-control" placeholder="Fractal Dimension Mean" step="0.0001" required>
+        </div>
+        <div class="col-6">
+            <input type="number" name="radius_se" class="form-control" placeholder="Radius SE" step="0.01" required>
+        </div>
+        <div class="col-6">
+            <input type="number" name="texture_se" class="form-control" placeholder="Texture SE" step="0.01" required>
+        </div>
+        <div class="col-6">
+            <input type="number" name="perimeter_se" class="form-control" placeholder="Perimeter SE" step="0.01" required>
+        </div>
+        <div class="col-6">
+            <input type="number" name="area_se" class="form-control" placeholder="Area SE" step="0.01" required>
+        </div>
+        <div class="col-6">
+            <input type="number" name="smoothness_se" class="form-control" placeholder="Smoothness SE" step="0.0001" required>
+        </div>
+        <div class="col-6">
+            <input type="number" name="compactness_se" class="form-control" placeholder="Compactness SE" step="0.0001" required>
+        </div>
+        <div class="col-6">
+            <input type="number" name="concavity_se" class="form-control" placeholder="Concavity SE" step="0.0001" required>
+        </div>
+        <div class="col-6">
+            <input type="number" name="concave_points_se" class="form-control" placeholder="Concave Points SE" step="0.0001" required>
+        </div>
+        <div class="col-6">
+            <input type="number" name="symmetry_se" class="form-control" placeholder="Symmetry SE" step="0.0001" required>
+        </div>
+        <div class="col-6">
+            <input type="number" name="fractal_dimension_se" class="form-control" placeholder="Fractal Dimension SE" step="0.0001" required>
+        </div>
+        <div class="col-6">
+            <input type="number" name="radius_worst" class="form-control" placeholder="Radius Worst" step="0.01" required>
+        </div>
+        <div class="col-6">
+            <input type="number" name="texture_worst" class="form-control" placeholder="Texture Worst" step="0.01" required>
+        </div>
+        <div class="col-6">
+            <input type="number" name="perimeter_worst" class="form-control" placeholder="Perimeter Worst" step="0.01" required>
+        </div>
+        <div class="col-6">
+            <input type="number" name="area_worst" class="form-control" placeholder="Area Worst" step="0.01" required>
+        </div>
+        <div class="col-6">
+            <input type="number" name="smoothness_worst" class="form-control" placeholder="Smoothness Worst" step="0.0001" required>
+        </div>
+        <div class="col-6">
+            <input type="number" name="compactness_worst" class="form-control" placeholder="Compactness Worst" step="0.0001" required>
+        </div>
+        <div class="col-6">
+            <input type="number" name="concavity_worst" class="form-control" placeholder="Concavity Worst" step="0.0001" required>
+        </div>
+        <div class="col-6">
+            <input type="number" name="concave_points_worst" class="form-control" placeholder="Concave Points Worst" step="0.0001" required>
+        </div>
+        <div class="col-6">
+            <input type="number" name="symmetry_worst" class="form-control" placeholder="Symmetry Worst" step="0.0001" required>
+        </div>
+        <div class="col-6">
+            <input type="number" name="fractal_dimension_worst" class="form-control" placeholder="Fractal Dimension Worst" step="0.0001" required>
+        </div>
+        <div class="col-12 text-center">
+            <button type="submit" class="btn btn-primary">Predict</button>
+        </div>
+    </form>
+    {% if error %}
+        <div class="alert alert-danger mt-4">{{ error }}</div>
+    {% elif prediction is not none %}
+        <div class="alert alert-info mt-4">
+            <h4>Prediction Result for {{ name }}</h4>
+            <p>Breast Cancer Diagnosis: {{ 'Malignant' if prediction == 1 else 'Benign' }}</p>
+        </div>
+    {% endif %}
+    {% if recommendations %}
+        <h2>Recommendations</h2>
+        <ul>
+            {% for rec in recommendations %}
+                <li>{{ rec }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    <div id="recordsSection" class="mt-4">
+        {% if no_records %}
+            <div class="alert alert-warning">No records found for {{ name }}</div>
+        {% elif records %}
+            <h4>Existing Records for {{ name }}</h4>
+            <div class="table-responsive">
+                <table class="table table-striped" id="recordsTable">
+                    <thead>
+                        <tr>
+                            <th class="numeric">ID</th>
+                            <th class="numeric">Radius Mean</th>
+                            <th class="numeric">Texture Mean</th>
+                            <th class="numeric">Perimeter Mean</th>
+                            <th class="numeric">Area Mean</th>
+                            <th class="numeric">Smoothness Mean</th>
+                            <th class="numeric">Compactness Mean</th>
+                            <th class="numeric">Concavity Mean</th>
+                            <th class="numeric">Concave Points Mean</th>
+                            <th class="numeric">Symmetry Mean</th>
+                            <th class="numeric">Fractal Dimension Mean</th>
+                            <th class="numeric">Radius SE</th>
+                            <th class="numeric">Texture SE</th>
+                            <th class="numeric">Perimeter SE</th>
+                            <th class="numeric">Area SE</th>
+                            <th class="numeric">Smoothness SE</th>
+                            <th class="numeric">Compactness SE</th>
+                            <th class="numeric">Concavity SE</th>
+                            <th class="numeric">Concave Points SE</th>
+                            <th class="numeric">Symmetry SE</th>
+                            <th class="numeric">Fractal Dimension SE</th>
+                            <th class="numeric">Radius Worst</th>
+                            <th class="numeric">Texture Worst</th>
+                            <th class="numeric">Perimeter Worst</th>
+                            <th class="numeric">Area Worst</th>
+                            <th class="numeric">Smoothness Worst</th>
+                            <th class="numeric">Compactness Worst</th>
+                            <th class="numeric">Concavity Worst</th>
+                            <th class="numeric">Concave Points Worst</th>
+                            <th class="numeric">Symmetry Worst</th>
+                            <th class="numeric">Fractal Dimension Worst</th>
+                            <th class="text">Result</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in records %}
+                            <tr>
+                                <td class="numeric">{{ record.id }}</td>
+                                <td class="numeric">{{ record.features['radius_mean'] | default('N/A') }}</td>
+                                <td class="numeric">{{ record.features['texture_mean'] | default('N/A') }}</td>
+                                <td class="numeric">{{ record.features['perimeter_mean'] | default('N/A') }}</td>
+                                <td class="numeric">{{ record.features['area_mean'] | default('N/A') }}</td>
+                                <td class="numeric">{{ record.features['smoothness_mean'] | default('N/A') }}</td>
+                                <td class="numeric">{{ record.features['compactness_mean'] | default('N/A') }}</td>
+                                <td class="numeric">{{ record.features['concavity_mean'] | default('N/A') }}</td>
+                                <td class="numeric">{{ record.features['concave_points_mean'] | default('N/A') }}</td>
+                                <td class="numeric">{{ record.features['symmetry_mean'] | default('N/A') }}</td>
+                                <td class="numeric">{{ record.features['fractal_dimension_mean'] | default('N/A') }}</td>
+                                <td class="numeric">{{ record.features['radius_se'] | default('N/A') }}</td>
+                                <td class="numeric">{{ record.features['texture_se'] | default('N/A') }}</td>
+                                <td class="numeric">{{ record.features['perimeter_se'] | default('N/A') }}</td>
+                                <td class="numeric">{{ record.features['area_se'] | default('N/A') }}</td>
+                                <td class="numeric">{{ record.features['smoothness_se'] | default('N/A') }}</td>
+                                <td class="numeric">{{ record.features['compactness_se'] | default('N/A') }}</td>
+                                <td class="numeric">{{ record.features['concavity_se'] | default('N/A') }}</td>
+                                <td class="numeric">{{ record.features['concave_points_se'] | default('N/A') }}</td>
+                                <td class="numeric">{{ record.features['symmetry_se'] | default('N/A') }}</td>
+                                <td class="numeric">{{ record.features['fractal_dimension_se'] | default('N/A') }}</td>
+                                <td class="numeric">{{ record.features['radius_worst'] | default('N/A') }}</td>
+                                <td class="numeric">{{ record.features['texture_worst'] | default('N/A') }}</td>
+                                <td class="numeric">{{ record.features['perimeter_worst'] | default('N/A') }}</td>
+                                <td class="numeric">{{ record.features['area_worst'] | default('N/A') }}</td>
+                                <td class="numeric">{{ record.features['smoothness_worst'] | default('N/A') }}</td>
+                                <td class="numeric">{{ record.features['compactness_worst'] | default('N/A') }}</td>
+                                <td class="numeric">{{ record.features['concavity_worst'] | default('N/A') }}</td>
+                                <td class="numeric">{{ record.features['concave_points_worst'] | default('N/A') }}</td>
+                                <td class="numeric">{{ record.features['symmetry_worst'] | default('N/A') }}</td>
+                                <td class="numeric">{{ record.features['fractal_dimension_worst'] | default('N/A') }}</td>
+                                <td class="text">{{ 'Malignant' if record.result == 1 else 'Benign' }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+    <script>
+        document.getElementById('searchForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const name = document.getElementById('patientName').value;
+            const recordsSection = document.getElementById('recordsSection');
+            try {
+                const response = await fetch(`/search/breast-cancer`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({ 'name': name })
+                });
+                const data = await response.json();
+                
+                // Clear existing content
+                recordsSection.innerHTML = '';
+
+                if (data.no_records || !data.records || data.records.length === 0) {
+                    recordsSection.innerHTML = `<div class="alert alert-warning mt-4">No records found for ${name}</div>`;
+                    return;
+                }
+
+                // Render records table
+                recordsSection.innerHTML = `
+                    <h4>Existing Records for ${name}</h4>
+                    <div class="table-responsive">
+                        <table class="table table-striped" id="recordsTable">
+                            <thead>
+                                <tr>
+                                    <th class="numeric">ID</th>
+                                    <th class="numeric">Radius Mean</th>
+                                    <th class="numeric">Texture Mean</th>
+                                    <th class="numeric">Perimeter Mean</th>
+                                    <th class="numeric">Area Mean</th>
+                                    <th class="numeric">Smoothness Mean</th>
+                                    <th class="numeric">Compactness Mean</th>
+                                    <th class="numeric">Concavity Mean</th>
+                                    <th class="numeric">Concave Points Mean</th>
+                                    <th class="numeric">Symmetry Mean</th>
+                                    <th class="numeric">Fractal Dimension Mean</th>
+                                    <th class="numeric">Radius SE</th>
+                                    <th class="numeric">Texture SE</th>
+                                    <th class="numeric">Perimeter SE</th>
+                                    <th class="numeric">Area SE</th>
+                                    <th class="numeric">Smoothness SE</th>
+                                    <th class="numeric">Compactness SE</th>
+                                    <th class="numeric">Concavity SE</th>
+                                    <th class="numeric">Concave Points SE</th>
+                                    <th class="numeric">Symmetry SE</th>
+                                    <th class="numeric">Fractal Dimension SE</th>
+                                    <th class="numeric">Radius Worst</th>
+                                    <th class="numeric">Texture Worst</th>
+                                    <th class="numeric">Perimeter Worst</th>
+                                    <th class="numeric">Area Worst</th>
+                                    <th class="numeric">Smoothness Worst</th>
+                                    <th class="numeric">Compactness Worst</th>
+                                    <th class="numeric">Concavity Worst</th>
+                                    <th class="numeric">Concave Points Worst</th>
+                                    <th class="numeric">Symmetry Worst</th>
+                                    <th class="numeric">Fractal Dimension Worst</th>
+                                    <th class="text">Result</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.records.map(record => `
+                                    <tr>
+                                        <td class="numeric">${record.id}</td>
+                                        <td class="numeric">${record.features['radius_mean'] || 'N/A'}</td>
+                                        <td class="numeric">${record.features['texture_mean'] || 'N/A'}</td>
+                                        <td class="numeric">${record.features['perimeter_mean'] || 'N/A'}</td>
+                                        <td class="numeric">${record.features['area_mean'] || 'N/A'}</td>
+                                        <td class="numeric">${record.features['smoothness_mean'] || 'N/A'}</td>
+                                        <td class="numeric">${record.features['compactness_mean'] || 'N/A'}</td>
+                                        <td class="numeric">${record.features['concavity_mean'] || 'N/A'}</td>
+                                        <td class="numeric">${record.features['concave_points_mean'] || 'N/A'}</td>
+                                        <td class="numeric">${record.features['symmetry_mean'] || 'N/A'}</td>
+                                        <td class="numeric">${record.features['fractal_dimension_mean'] || 'N/A'}</td>
+                                        <td class="numeric">${record.features['radius_se'] || 'N/A'}</td>
+                                        <td class="numeric">${record.features['texture_se'] || 'N/A'}</td>
+                                        <td class="numeric">${record.features['perimeter_se'] || 'N/A'}</td>
+                                        <td class="numeric">${record.features['area_se'] || 'N/A'}</td>
+                                        <td class="numeric">${record.features['smoothness_se'] || 'N/A'}</td>
+                                        <td class="numeric">${record.features['compactness_se'] || 'N/A'}</td>
+                                        <td class="numeric">${record.features['concavity_se'] || 'N/A'}</td>
+                                        <td class="numeric">${record.features['concave_points_se'] || 'N/A'}</td>
+                                        <td class="numeric">${record.features['symmetry_se'] || 'N/A'}</td>
+                                        <td class="numeric">${record.features['fractal_dimension_se'] || 'N/A'}</td>
+                                        <td class="numeric">${record.features['radius_worst'] || 'N/A'}</td>
+                                        <td class="numeric">${record.features['texture_worst'] || 'N/A'}</td>
+                                        <td class="numeric">${record.features['perimeter_worst'] || 'N/A'}</td>
+                                        <td class="numeric">${record.features['area_worst'] || 'N/A'}</td>
+                                        <td class="numeric">${record.features['smoothness_worst'] || 'N/A'}</td>
+                                        <td class="numeric">${record.features['compactness_worst'] || 'N/A'}</td>
+                                        <td class="numeric">${record.features['concavity_worst'] || 'N/A'}</td>
+                                        <td class="numeric">${record.features['concave_points_worst'] || 'N/A'}</td>
+                                        <td class="numeric">${record.features['symmetry_worst'] || 'N/A'}</td>
+                                        <td class="numeric">${record.features['fractal_dimension_worst'] || 'N/A'}</td>
+                                        <td class="text">${record.result === 1 ? 'Malignant' : 'Benign'}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error fetching records:', error);
+                recordsSection.innerHTML = `<div class="alert alert-danger mt-4">Error fetching records. Please try again.</div>`;
+            }
+        });
+    </script>
+{% endblock %}

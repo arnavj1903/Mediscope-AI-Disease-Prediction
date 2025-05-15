@@ -1,0 +1,4 @@
+instance/medical.db
+./__pycache__/
+.venv
+src/

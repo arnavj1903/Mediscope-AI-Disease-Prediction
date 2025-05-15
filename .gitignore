@@ -1,4 +1,4 @@
+.env
+__pycache__/
+*.pyc
 instance/medical.db
-./__pycache__/
-.venv
-src/

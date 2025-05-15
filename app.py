@@ -33,7 +33,7 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 # Configure Gemini API
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyAngvpflodR7WNa7BjEneKwhlQvx8Nvx9Q")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if not GEMINI_API_KEY:
     logger.error("Gemini API key not found in .env file")
 else:

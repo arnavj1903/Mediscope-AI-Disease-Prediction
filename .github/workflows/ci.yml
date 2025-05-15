@@ -6,6 +6,15 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -53,24 +62,31 @@ jobs:
     
   deploy:
     needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Build static files
       run: |
-        mkdir -p build
-        cp -r templates/* build/
-        cp -r static/* build/
-        # Copy any other static assets
-        cp .nojekyll build/ || true
-        cp _config.yml build/ || true
+        mkdir -p _site
+        cp -r templates/* _site/
+        cp -r static/* _site/
+        cp .nojekyll _site/ || true
+        cp _config.yml _site/ || true
+
+    - name: Setup Pages
+      uses: actions/configure-pages@v5
+
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: '_site'
 
     - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./build
-        force_orphan: true
+      id: deployment
+      uses: actions/deploy-pages@v4

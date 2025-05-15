@@ -1,0 +1,13 @@
+title: MediScope AI
+description: AI-Powered Disease Prediction System
+baseurl: "/Mediscope-AI-Disease-Prediction"
+url: "https://arnavj1903.github.io"
+markdown: kramdown
+exclude:
+  - Dockerfile
+  - requirements.txt
+  - app.py
+  - test_app.py
+  - README.md
+  - venv/
+  - __pycache__/

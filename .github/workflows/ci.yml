@@ -50,3 +50,27 @@ jobs:
        tags: arnavj1903/disease-prediction-system:latest
        build-args: |
           GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+    
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Build static files
+      run: |
+        mkdir -p build
+        cp -r templates/* build/
+        cp -r static/* build/
+        # Copy any other static assets
+        cp .nojekyll build/ || true
+        cp _config.yml build/ || true
+
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./build
+        force_orphan: true
